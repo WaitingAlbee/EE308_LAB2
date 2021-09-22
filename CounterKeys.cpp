@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <fstream>
 using namespace std;
 
 const string keywords[] = { "auto","break","case","char","const","continue","default"
@@ -22,6 +23,8 @@ struct OutputResult{
 	vector<int> case_arr;
 	int level;
 };
+
+/**********************用户操作界面***************************/ 
 
 class UserInterface{
 public:
@@ -62,6 +65,73 @@ void UserInterface::output(OutputResult* out){
 	}
 
 }
+
+/**********************读取目标文件***************************/ 
+
+class FileRead{
+public:
+	ifstream file; 
+	stringstream file_content; // 读取文件内容 
+	bool findSucess(); // 判断是否找到目标文件 
+	void openFile(UserInputArg* in); // 重新输入直到打开目标文件 
+	string readFile(); // 读取目标文件内容 
+	void closeFile(); // 关闭目标文件 
+	
+}; 
+
+bool FileRead::findSucess(){
+	if(file.fail()){
+		return 0;
+	}
+	else{
+		return 1;
+	}
+} 
+
+void FileRead::openFile(UserInputArg* in){
+	file.open(in->filepath);
+	while(!findSucess()){
+		cout << "The file is unsucessfully found."
+			<< "Please re-enter the correct filepath." << endl;
+		UserInterface::input(in);
+		file.open(in->filepath);	
+	}
+	
+}
+
+string FileRead::readFile(){
+	file_content << file.rdbuf(); // rdbuf()把file流对象中的流重定向到file_content上
+	return file_content.str();
+}
+
+void FileRead::closeFile(){
+	file.close();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
