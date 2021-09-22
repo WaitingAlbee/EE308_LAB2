@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <fstream>
+#include <unordered_map>
 using namespace std;
 
 const string keywords[] = { "auto","break","case","char","const","continue","default"
@@ -18,9 +19,9 @@ struct UserInputArg{
 struct OutputResult{
 	int keywords_num;
 	int switch_num;
+	vector<int> case_arr;
 	int if_else_num;
 	int if_elseif_else_num;
-	vector<int> case_arr;
 	int level;
 };
 
@@ -106,6 +107,33 @@ string FileRead::readFile(){
 
 void FileRead::closeFile(){
 	file.close();
+}
+
+/**********************关键词计数***************************/
+
+class Count{
+public:
+	OutputResult out;
+	unordered_map<string, int> keywords_map; //
+	void countKeywords(string s);
+	
+};
+
+void Count::countKeywords(string s){
+	if(keywords_map.find(s) != keywords_map.end()){ //搜索map值，找不到对应值返回0，找到对应值返回1 
+		out.keywords_num++;
+	}
+}
+
+void Count::countSwitchCase(string s, int* case_arr_index) {
+	if (s == "switch") {
+		out.switch_num++;
+		out.case_arr.push_back(0);
+		(*case_list_index)++;
+	}
+	else if (s == "case") {
+		out.case_arr[*case_arr_index]++;
+	}
 }
 
 
