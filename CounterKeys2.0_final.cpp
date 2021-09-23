@@ -87,13 +87,13 @@ public:
     stack<string> ifelse_stack; // 创建ifelse栈容器，逐一判断栈顶元素
 
     void GetReady(const string arr[], int size, int level);
+    void countKeywords(string s);
+    void countSwitchCase(string s, int* case_arr_index);
+    void countIfElse(string s, char* c);
     bool isIgnoreSymbol(const string& s, int i, IgnoreList* situation);
     void IgnoreSlash(const string& s, int i, IgnoreList* situation);
     void IgnoreMacro(const string& s, int i, IgnoreList* situation);
     void IgnoreQuote(const string& s, int i, IgnoreList* situation) ;
-    void countKeywords(string s);
-    void countSwitchCase(string s, int* case_arr_index);
-    void countIfElse(string s, char* c);
     void countWork(string content, int level);
     OutputResult* getOutput();
 };
@@ -106,6 +106,58 @@ void Count::GetReady(const string arr[], int size, int level){
     out = { level, 0,0,0,0 }; // 初始化所有关键词数量为零
 
 }
+
+void Count::countKeywords(string s){
+    if(keywords_map.find(s) != keywords_map.end()){  //使用unordered_map搜索，找不到对应值返回0，找到对应值返回1
+        out.keywords_num++;
+    }
+}
+
+void Count::countSwitchCase(string s, int* case_arr_index) {
+    if (s == "switch") {
+        out.switch_num++;
+        out.case_arr.push_back(0); // 在数组后添加一项 （创建空间开始存放case数量）
+        (*case_arr_index)++;
+    }
+    else if (s == "case") {
+        out.case_arr[*case_arr_index]++;
+    }
+}
+
+
+void Count::countIfElse(string s, char* c){
+    if (s == "if"){
+        ifelse_stack.push(s); //遇到if直接进栈
+    }
+    else if(s == "else"){
+        char* p_temp = c;
+        while (*p_temp == ' ' ) {
+            p_temp++;
+        }
+        if (*p_temp == 'i' && *(p_temp + 1) == 'f') {   //遇到else if添加进栈
+            i+=3;
+            out.keywords_num++; // 关键词计数时少算一次if，补上 
+            ifelse_stack.push("elseif");
+        }
+        else { //遇到else
+            int flag = 0;
+            while (ifelse_stack.top() != "if") // 如果栈顶是elseif,则删至遇到if，(if_elseif_else_num +1)并删去if 
+            {
+                flag = 1;
+                ifelse_stack.pop();
+            }
+            if (!flag){ //如果栈顶是if,(if_else_num +1)并删除if 
+                out.if_else_num++;
+            }
+            else out.if_elseif_else_num++;
+            ifelse_stack.pop();
+
+        }
+    }
+}
+
+
+
 bool Count::isIgnoreSymbol(const string& s, int i, IgnoreList* situation){
     IgnoreMacro(s, i, situation);
     IgnoreSlash(s, i, situation);
@@ -155,55 +207,6 @@ void Count::IgnoreQuote(const string& s, int i, IgnoreList* situation) {
         else
         {
             situation->ignore_symbol_before = true; //  单数引号 忽略ing
-        }
-    }
-}
-
-void Count::countKeywords(string s){
-    if(keywords_map.find(s) != keywords_map.end()){  //使用unordered_map搜索，找不到对应值返回0，找到对应值返回1
-        out.keywords_num++;
-    }
-}
-
-void Count::countSwitchCase(string s, int* case_arr_index) {
-    if (s == "switch") {
-        out.switch_num++;
-        out.case_arr.push_back(0); // 在数组后添加一项 （创建空间开始存放case数量）
-        (*case_arr_index)++;
-    }
-    else if (s == "case") {
-        out.case_arr[*case_arr_index]++;
-    }
-}
-
-
-void Count::countIfElse(string s, char* c){
-    if (s == "if"){
-        ifelse_stack.push(s); //遇到if直接进栈
-    }
-    else if(s == "else"){
-        char* p_temp = c;
-        while (*p_temp == ' ' ) {
-            p_temp++;
-        }
-        if (*p_temp == 'i' && *(p_temp + 1) == 'f') {   //遇到else if添加进栈
-            i+=3;
-            out.keywords_num++; // 关键词计数时少算一次if，补上 
-            ifelse_stack.push("elseif");
-        }
-        else { //遇到else
-            int flag = 0;
-            while (ifelse_stack.top() != "if") // 如果栈顶是elseif,则删至遇到if，(if_elseif_else_num +1)并删去if 
-            {
-                flag = 1;
-                ifelse_stack.pop();
-            }
-            if (!flag){ //如果栈顶是if,(if_else_num +1)并删除if 
-                out.if_else_num++;
-            }
-            else out.if_elseif_else_num++;
-            ifelse_stack.pop();
-
         }
     }
 }
