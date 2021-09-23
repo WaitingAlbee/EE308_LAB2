@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../pro1/pro1.cpp"
+#include "../EE308_LAB2/CounterKeys2.0_final.cpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace UnitTest1
