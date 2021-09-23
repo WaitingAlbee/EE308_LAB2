@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <unordered_map>
+#include <stack> 
 using namespace std;
 
 const string keywords[] = { "auto","break","case","char","const","continue","default"
@@ -114,9 +115,13 @@ void FileRead::closeFile(){
 class Count{
 public:
 	OutputResult out;
-	unordered_map<string, int> keywords_map; //
+	unordered_map<string, int> keywords_map; // 构建关键词哈希表，便于后续查找 
+	stack<string> ifelse_stack; // 创建ifelse栈容器，逐一判断栈顶元素 
 	void countKeywords(string s);
-	
+	void countSwitchCase(string s, int* case_arr_index);
+	bool addTopStack(string s, char* c);
+	void addBracket(char* c);
+	void countIfElse(string s, char* c);
 };
 
 void Count::countKeywords(string s){
@@ -128,11 +133,60 @@ void Count::countKeywords(string s){
 void Count::countSwitchCase(string s, int* case_arr_index) {
 	if (s == "switch") {
 		out.switch_num++;
-		out.case_arr.push_back(0);
-		(*case_list_index)++;
+		out.case_arr.push_back(0); // 在数组后添加一项 （创建空间） 
+		(*case_arr_index)++;
 	}
 	else if (s == "case") {
 		out.case_arr[*case_arr_index]++;
+	}
+}
+
+bool Count::addTopStack(string s, char* c){
+	if (s == "if"){
+		ifelse_stack.push("if");
+	}
+	return 1; 
+}
+
+void Count::addBracket(char* c){
+	string s(1, *c); // 一位一位判断字符串 
+	if (*c == '{') {
+		
+		ifelse_stack.push(s); // 添加“{” 
+	}
+	if (*c == '}') {
+		if (ifelse_stack.top() == "{") {
+			ifelse_stack.pop(); // 删去“{” 
+		}
+		else {
+			ifelse_stack.push(s); // 添加“}” 
+		}
+	}
+}
+
+void Count::countIfElse(string s, char* c){
+	if(!addTopStack(s, c)){ // 遇到else 
+		bool else_if = 0; 
+		while(ifelse_stack.top() != "if"){
+			if(ifelse_stack.top() == "}"){
+				do {
+					ifelse_stack.pop();
+				} while (ifelse_stack.top() != "{");
+				ifelse_stack.pop(); // 删除到“{” 
+			}
+			if(ifelse_stack.top() == "elseif"){
+				else_if = 1;
+				ifelse_stack.pop();
+				
+			} 
+		}
+		ifelse_stack.pop(); // 删去栈顶if
+		if (else_if) {
+			out.if_elseif_else_num++;
+		}
+		else {
+			out.if_else_num++;
+		}
 	}
 }
 
