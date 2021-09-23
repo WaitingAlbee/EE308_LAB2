@@ -18,11 +18,11 @@ struct UserInputArg{
 };
 
 struct OutputResult{
+	int level;
 	int keywords_num;
 	int switch_num;
 	int if_else_num;
 	int if_elseif_else_num;
-	int level;
 	vector<int> case_arr;
 };
 
@@ -103,7 +103,7 @@ void FileRead::openFile(UserInputArg* in){
 	file.open(in->filepath);
 	while(!findSucess()){
 		cout << "The file is unsucessfully found."
-			<< "Please re-enter the correct filepath." << endl;
+			<< "\nPlease re-enter the correct filepath." << endl;
 		UserInterface::input(in);
 		file.open(in->filepath);	
 	}
