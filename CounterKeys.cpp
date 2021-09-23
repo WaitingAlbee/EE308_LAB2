@@ -139,6 +139,7 @@ public:
 	void addBracket(char* c);
 	void countIfElse(string s, char* c);
 	void countWork(string content, int level);
+	OutputResult* getOutput();
 };
 
 void Count::GetReady(const string arr[], int size, int level){
@@ -189,8 +190,7 @@ void Count::IgnoreMacro(const string& s, int i, IgnoreList* situation){
 } 
 
 void Count::IgnoreQuote(const string& s, int i, IgnoreList* situation) {
-	//前面没有其他该忽略的字符 或 前面已经有一个相匹配的引号
-	if (s[i - 1] == '"' && (!situation->ignore_symbol_before || situation->quote_times == 1)){
+	if (s[i - 1] == '"' && (!situation->ignore_symbol_before || situation->quote_times == 1)){ 	//前面没有其他该忽略的字符 或 前面已经有一个相匹配的引号
 		situation->quotes = !situation->quotes; //计算机里引号是一样的，所以只能取反
 		
 		situation->quote_times = (situation->quote_times + 1) % 2; //奇数次结果为1，偶数次结果为0
@@ -205,7 +205,7 @@ void Count::IgnoreQuote(const string& s, int i, IgnoreList* situation) {
 }
 
 void Count::countKeywords(string s){
-	if(keywords_map.find(s) != keywords_map.end()){ //搜索map值，找不到对应值返回0，找到对应值返回1 
+	if(keywords_map.find(s) != keywords_map.end()){  //使用unordered_map搜索，找不到对应值返回0，找到对应值返回1 
 		out.keywords_num++;
 	}
 }
@@ -222,13 +222,24 @@ void Count::countSwitchCase(string s, int* case_arr_index) {
 }
 
 bool Count::addTopStack(string s, char* c){
-	if (s == "if"){
-		ifelse_stack.push("if");
+	if (s == "if") {
+			ifelse_stack.push(s); // 遇到if：添加 
+		}
+		return true;
+	if (s == "else") {
+		char* p_temp = c;
+		while (*p_temp == ' ' ) {
+			p_temp++;
+		}
+		if (*p_temp == 'i' && *(p_temp + 1) == 'f') {   // 遇到else if：添加 
+		    ifelse_stack.push("elseif");
+			return true;
+		}
+		else  // 遇到else：进入计数循环countIfElse
+		{
+			return false;  
+		}
 	}
-	if (s == "else"){
-		
-	}
-	return 1; 
 }
 
 void Count::addBracket(char* c){
@@ -297,32 +308,23 @@ void Count::countWork(string content, int level){
 	}
 }
 
+OutputResult* Count::getOutput(){
+	OutputResult* p_out = &out;
+	return p_out;
+} 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int main(){
+	int arr_size = sizeof(keywords);
+	UserInputArg in;
+	FileRead file;
+	
+	UserInterface::input(&in);
+	file.openFile(&in);
+	string text = file.readFile();
+	file.closeFile();
+	Count count;
+	count.GetReady(keywords, arr_size, in.level);
+	count.countWork(text, in.level);
+	UserInterface::output(count.getOutput());
+	return 0 ;
+} 
